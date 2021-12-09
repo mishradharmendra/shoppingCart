@@ -1,0 +1,31 @@
+spring:
+  application:
+    name: auth-service
+  data:
+    mongodb:
+      uri: mongodb://${MONGODB_USER:test}:${MONGODB_PWD:password}@${MONGODB_HOST:localhost:27017}/${MONGODB_NAME:ezyShopping}?${MONGODB_OPTIONS:authSource=admin&authMechanism=SCRAM-SHA-256}
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+  jackson:
+    default-property-inclusion: NON_NULL
+
+server:
+  port: 7000
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8083/eureka
+  instance:
+    prefer-ip-address: true
+
+springdoc:
+  swagger-ui:
+    path: /auth-service-swagger.html
+  operationsSorter: method
+
+
+jwt:
+  secret: secretkey
+  token:
+    validity: 1800000
