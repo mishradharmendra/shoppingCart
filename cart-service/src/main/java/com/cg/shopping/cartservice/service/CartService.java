@@ -4,6 +4,7 @@ import com.cg.shopping.cartservice.dao.CartRepository;
 import com.cg.shopping.cartservice.entity.Cart;
 import com.cg.shopping.cartservice.entity.Items;
 import lombok.AllArgsConstructor;
+import lombok.Synchronized;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -41,8 +42,16 @@ public class CartService {
     }
 
     public Cart addCart(Cart cart) {
+        cart.setCartId(getNextId());
         cart.setTotalPrice(cartTotal(cart));
         return  cartRepository.save(cart);
+    }
+    
+    @Synchronized
+    public int getNextId() {
+        Cart cart = cartRepository.findTopByOrderByCartIdDesc();
+        int id = (cart != null) ? cart.getCartId() : 0;
+        return ++id;
     }
 
 }
