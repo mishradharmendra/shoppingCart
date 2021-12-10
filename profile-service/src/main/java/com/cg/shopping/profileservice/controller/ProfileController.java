@@ -62,7 +62,7 @@ public class ProfileController {
 
 
     @GetMapping(value = "/{profileId}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<UserProfile> getAllProductById(@RequestParam (value = "profileId") int profileId ) {
+    public ResponseEntity<UserProfile> getById(@RequestParam (value = "profileId") int profileId ) {
         return ResponseEntity.ok(userProfileService.getByProfileId(profileId));
     }
 
@@ -77,7 +77,7 @@ public class ProfileController {
     }
 
     @PutMapping(value = "/updateProfile", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Void> updateProduct(@RequestBody UserProfile userProfile) {
+    public ResponseEntity<Void> updateProfile(@RequestBody UserProfile userProfile) {
         userProfileService.updateUserProfile(userProfile);
         return ResponseEntity.status(HttpStatus.OK).build();
     }
