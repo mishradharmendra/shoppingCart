@@ -5,6 +5,7 @@ import com.cg.shopping.orderservice.dao.OrderRepository;
 import com.cg.shopping.orderservice.entity.Address;
 import com.cg.shopping.orderservice.entity.Order;
 import lombok.AllArgsConstructor;
+import lombok.Synchronized;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -22,6 +23,7 @@ public class OrderService {
     }
 
     public Address storeAddress(Address address) {
+        order.setOrderId(getNextId());
         return addressRepository.save(address);
     }
     public void changeOrderStatus(int orderId, String status) {
@@ -59,5 +61,11 @@ public class OrderService {
     public List<Address> getAllAddressByCustomerId(int customerId) {
         return addressRepository.findByCustomerId(customerId);
     }
-
+    
+    @Synchronized
+    public int getNextId() {
+        Order order = orderRepository.findTopByOrderByOrderIdDesc();
+        int id = (order != null) ? order.getOrderId() : 0;
+        return ++id;
+    }
 }
