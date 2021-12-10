@@ -17,5 +17,5 @@ public interface ProductRepository extends MongoRepository<Product, String> {
 
     List<Product> findByProductType(String productType);
 
-
+    Product findTopByOrderByOrderIdDesc();
 }
