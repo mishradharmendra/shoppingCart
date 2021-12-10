@@ -44,7 +44,7 @@ public class CartController {
     }
 
     @PutMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Cart> updateProduct(@RequestBody Cart cart) {
+    public ResponseEntity<Cart> update(@RequestBody Cart cart) {
         return ResponseEntity.ok(cartService.updateCart(cart));
     }
 }
