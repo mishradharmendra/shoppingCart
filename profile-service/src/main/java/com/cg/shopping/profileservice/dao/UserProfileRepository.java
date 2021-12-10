@@ -15,5 +15,7 @@ public interface UserProfileRepository extends MongoRepository<UserProfile, Stri
     Optional<UserProfile> findByMobileNumber(long mobileNumber);
 
     Optional<UserProfile> findByEmailAndPassword(String email, String password);
+    
+    UserProfile findTopByOrderByProfileIdDesc();
 
 }
