@@ -3,6 +3,7 @@ package com.cg.shopping.profileservice.service;
 import com.cg.shopping.profileservice.dao.UserProfileRepository;
 import com.cg.shopping.profileservice.entity.UserProfile;
 import lombok.AllArgsConstructor;
+import lombok.Synchronized;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -18,6 +19,7 @@ public class UserProfileService {
     private final UserProfileRepository userProfileRepository;
 
     public UserProfile addNewUserProfile(UserProfile userProfile) {
+        userProfile.setProfileId(getNextId());
         return userProfileRepository.save(userProfile);
     }
 
@@ -41,7 +43,11 @@ public class UserProfileService {
     }
 
     public void updateUserProfile(UserProfile userProfile) {
-        userProfileRepository.save(userProfile);
+        Optional<UserProfile> byProfileId = userProfileRepository.findByProfileId(userProfile.getProfileId());
+        if (byProfileId.isPresent()) {
+            userProfile.setId(byProfileId.get().getId());
+            userProfileRepository.save(userProfile);
+        }
     }
 
     public void deleteUserProfile(int profileId) {
@@ -49,5 +55,12 @@ public class UserProfileService {
         if (byProfileId.isPresent()) {
             userProfileRepository.delete(byProfileId.get());
         }
+    }
+
+    @Synchronized
+    public int getNextId() {
+        UserProfile profile = userProfileRepository.findTopByOrderByProfileIdDesc();
+        int id = (profile != null) ? profile.getProfileId() : 0;
+        return ++id;
     }
 }
