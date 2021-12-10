@@ -66,12 +66,12 @@ public class ProfileController {
         return ResponseEntity.ok(userProfileService.getByProfileId(profileId));
     }
 
-    @GetMapping(value = "/{mobilePhone}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/mobile/{mobilePhone}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<UserProfile> getAllByMobilePhone(@RequestParam (value = "mobilePhone") long mobilePhone ) {
         return ResponseEntity.ok(userProfileService.getByMobileNumber(mobilePhone));
     }
 
-    @GetMapping(value = "/{userName}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/username/{userName}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<UserProfile> getByName(@RequestParam (value = "userName") String userName ) {
         return ResponseEntity.ok(userProfileService.getByUserName(userName));
     }
@@ -82,7 +82,7 @@ public class ProfileController {
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
-    @DeleteMapping("/{profileId}")
+    @DeleteMapping("/delete/{profileId}")
     public ResponseEntity<Void> deleteProfile(@RequestParam(value = "profileId") int profileId) {
         userProfileService.deleteUserProfile(profileId);
         return ResponseEntity.status(HttpStatus.OK).build();
