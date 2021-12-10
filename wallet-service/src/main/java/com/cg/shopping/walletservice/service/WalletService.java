@@ -23,9 +23,10 @@ public class WalletService {
     }
 
     public Wallet createWallet(Wallet wallet) {
-        if (walletRepository.findByCustomerId(wallet.getCustomerId()).isEmpty())
+        if (walletRepository.findByCustomerId(wallet.getCustomerId()).isEmpty()) {
+            wallet.setWalletId(getNextId());
             return walletRepository.save(wallet);
-        else
+        } else
             throw new IllegalArgumentException("Wallet already exist for customer " + wallet.getCustomerId());
     }
 
@@ -67,5 +68,11 @@ public class WalletService {
             statementRepository.deleteAll(byWalletId1);
             walletRepository.delete(byWalletId.get());
         }
+    }
+    @Synchronized
+    public int getNextId() {
+        Wallet wallet = walletRepository.findTopByOrderByWalletIdDesc();
+        int id = (wallet != null) ? wallet.getWalletId() : 0;
+        return ++id;
     }
 }
