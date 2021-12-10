@@ -11,4 +11,5 @@ public interface WalletRepository extends MongoRepository<Wallet, String> {
 
     Optional<Wallet> findByCustomerId(int customerId);
     Optional<Wallet> findByWalletId(int walletId);
+    Wallet findTopByOrderByWalletIdDesc();
 }
