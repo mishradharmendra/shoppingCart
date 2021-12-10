@@ -102,7 +102,7 @@ public class OrderController {
     }
 
     @DeleteMapping(value = "delete/{orderId}",consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Void> updateProduct(@RequestParam(value = "orderId") int orderId) {
+    public ResponseEntity<Void> delete(@RequestParam(value = "orderId") int orderId) {
         orderService.deleteOrder(orderId);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
