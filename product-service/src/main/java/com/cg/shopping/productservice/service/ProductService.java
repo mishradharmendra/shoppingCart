@@ -3,6 +3,7 @@ package com.cg.shopping.productservice.service;
 import com.cg.shopping.productservice.dao.ProductRepository;
 import com.cg.shopping.productservice.entity.Product;
 import lombok.AllArgsConstructor;
+import lombok.Synchronized;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -17,13 +18,19 @@ public class ProductService {
     private final ProductRepository productRepository;
 
     public void addProduct(Product product) {
+        product.setProductId(getNextId());
         productRepository.save(product);
     }
 
     public Product updateProduct(Product product) {
-        return productRepository.save(product);
+        Optional<Product> byProductId = productRepository.findByProductId(product.getProductId());
+        if (byProductId.isPresent()) {
+            product.setId(byProductId.get().getId());
+            return productRepository.save(product);
+        } else {
+            throw  new IllegalArgumentException("No such product found");
+        }
     }
-
     public void deleteProductById(int productId) {
         Optional<Product> byProductId = productRepository.findByProductId(productId);
         if (byProductId.isPresent())
@@ -47,5 +54,12 @@ public class ProductService {
 
     public Optional<Product> getProductByName(String productName) {
         return productRepository.findByProductName(productName);
+    }
+    
+    @Synchronized
+    public int getNextId() {
+        Product product = productRepository.findTopByOrderByProductIdDesc();
+        int id = (product != null) ? product.getProductId() : 0;
+        return ++id;
     }
 }
