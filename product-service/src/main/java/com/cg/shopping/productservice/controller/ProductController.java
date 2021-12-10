@@ -58,32 +58,32 @@ public class ProductController {
     }
 
 
-    @GetMapping(value = "/allProduct/{productId}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/{productId}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Optional<Product>> getAllProductById(@RequestParam (value = "productId") int productId ) {
         return ResponseEntity.ok(productService.getProductById(productId));
     }
 
-    @GetMapping(value = "/allProduct/{productType}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/productType/{productType}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<Product>> getAllProductByType(@RequestParam (value = "productType") String productType ) {
         return ResponseEntity.ok(productService.getProductsByProductType(productType));
     }
 
-    @GetMapping(value = "/allProduct/{productName}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/productName/{productName}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Optional<Product>> getAllProductByName(@RequestParam (value = "productName") String productName ) {
         return ResponseEntity.ok(productService.getProductByName(productName));
     }
 
-    @GetMapping(value = "/allProduct/{productCategory}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/category/{productCategory}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<Product>> getAllProductByCategory(@RequestParam (value = "productCategory") String productCategory ) {
         return ResponseEntity.ok(productService.getProductsByCategory(productCategory));
     }
 
-    @PutMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PutMapping(value="/update", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Product> updateProduct(@RequestBody Product product) {
         return ResponseEntity.ok(productService.updateProduct(product));
     }
 
-    @DeleteMapping("/{productId}")
+    @DeleteMapping("/delete/{productId}")
     public ResponseEntity<Void> deleteProduct(@RequestParam(value = "productId") int productId) {
         productService.deleteProductById(productId);
         return ResponseEntity.status(HttpStatus.OK).build();
