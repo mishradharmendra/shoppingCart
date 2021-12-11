@@ -19,11 +19,11 @@ public class OrderService {
     private final AddressRepository addressRepository;
 
     public Order placeOrder(Order order) {
+        order.setOrderId(getNextId()):
         return orderRepository.save(order);
     }
 
     public Address storeAddress(Address address) {
-        order.setOrderId(getNextId());
         return addressRepository.save(address);
     }
     public void changeOrderStatus(int orderId, String status) {
