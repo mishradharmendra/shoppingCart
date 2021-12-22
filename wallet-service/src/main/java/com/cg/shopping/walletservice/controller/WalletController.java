@@ -5,27 +5,31 @@ import com.cg.shopping.walletservice.entity.Wallet;
 import com.cg.shopping.walletservice.entity.WalletRequest;
 import com.cg.shopping.walletservice.service.WalletService;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.ws.rs.PathParam;
 import java.util.List;
 
 @RestController
-@RequestMapping("/wallet")
+@RequestMapping("/api/wallet")
 @AllArgsConstructor
+@Slf4j
 public class WalletController {
 
     private final WalletService walletService;
 
-    @PostMapping(value = "/createCart", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = "/createWallet", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Wallet> addWallet(@RequestBody Wallet wallet) {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
@@ -43,9 +47,15 @@ public class WalletController {
 
     @PostMapping(value = "/payMoney", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> payMoney(@RequestBody WalletRequest wallet) {
-        walletService.addMoney(wallet);
+        try {
+            walletService.addMoney(wallet);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .build();
+        }
         return ResponseEntity
-                .status(HttpStatus.NO_CONTENT)
+                .status(HttpStatus.OK)
                 .build();
     }
 
@@ -55,12 +65,13 @@ public class WalletController {
     }
 
 
-    @GetMapping(value = "/{customerId}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Wallet> getByCustomerId(@RequestParam (value = "customerId") int customerId ) {
+    @GetMapping(value = "/customer/{customerId}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Wallet> getByCustomerId(@PathVariable String customerId ) {
+        log.info("Received get customer wallet request " + customerId);
         return ResponseEntity.ok(walletService.findByCustomerId(customerId));
     }
 
-    @GetMapping(value = "/{walletId}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/wallet/{walletId}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Wallet> getById(@RequestParam (value = "walletId") int walletId ) {
         return ResponseEntity.ok(walletService.findByWalletId(walletId));
     }
@@ -75,7 +86,7 @@ public class WalletController {
         return ResponseEntity.ok(walletService.getAllStatemet());
     }
 
-    @DeleteMapping(value = "/{walletId}")
+    @DeleteMapping(value = "/delete/{walletId}")
     public ResponseEntity<Void> deleteWallet(@RequestParam (value = "walletId") int walletId) {
         walletService.deleteWallet(walletId);
         return ResponseEntity.status(HttpStatus.OK).build();

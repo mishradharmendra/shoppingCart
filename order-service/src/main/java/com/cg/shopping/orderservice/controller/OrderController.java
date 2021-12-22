@@ -3,7 +3,7 @@ package com.cg.shopping.orderservice.controller;
 import com.cg.shopping.orderservice.client.Wallet;
 import com.cg.shopping.orderservice.client.WalletRequest;
 import com.cg.shopping.orderservice.client.WalletServiceClient;
-import com.cg.shopping.orderservice.entity.Address;
+import com.cg.shopping.orderservice.entity.ShippingAddress;
 import com.cg.shopping.orderservice.entity.Order;
 import com.cg.shopping.orderservice.service.OrderService;
 import lombok.AllArgsConstructor;
@@ -12,6 +12,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -21,7 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@RequestMapping("/order")
+@RequestMapping("/api/orders")
 @AllArgsConstructor
 public class OrderController {
 
@@ -29,18 +30,19 @@ public class OrderController {
     private final WalletServiceClient walletServiceClient;
 
     @PostMapping(value = "/placeOrder", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Order> addCart(@RequestBody Order order) {
+    public ResponseEntity<Order> placeOrder(@RequestBody Order order) {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(orderService.placeOrder(order));
     }
 
-    @PostMapping(value = "/storeAddress", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Address> storeAddress(@RequestBody Address address) {
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(orderService.storeAddress(address));
+    @GetMapping("/{id}")
+    public ResponseEntity<?> addOrderItems(@PathVariable String id){
+        Order order = orderService.findById(id).get();
+        return ResponseEntity.status(201).body(order);
     }
+
+
     @PostMapping(value = "/onlinePayment", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Order> onlinePayment(@RequestBody Order order) {
         ResponseEntity<Wallet> byCustomerId = walletServiceClient.getByCustomerId(order.getCustomerId());
@@ -49,7 +51,7 @@ public class OrderController {
             WalletRequest walletRequest = WalletRequest
                     .builder()
                     .walletId(body.getWalletId())
-                    .amount(order.getAmountPaid())
+                    .amount(order.getTotalPrice())
                     .transactionType("Withdraw")
                     .build();
             ResponseEntity<Void> payMoney = walletServiceClient.payMoney(walletRequest);
@@ -71,7 +73,7 @@ public class OrderController {
     public ResponseEntity<Void> changeOrderStatus(@RequestParam (value = "status") String status,
                                                   @RequestParam (value = "orderId") int orderId) {
         orderService.changeOrderStatus(orderId, status);
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+        return ResponseEntity.status(HttpStatus.OK).build();
     }
 
 
@@ -86,23 +88,13 @@ public class OrderController {
     }
 
 
-    @GetMapping(value = "/allAddress", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<List<Address>> getAllAddress() {
-        return ResponseEntity.ok(orderService.getAllAddress());
-    }
-
-    @GetMapping(value = "customer/{customerId}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<List<Order>> getByCustomerId(@RequestParam (value = "customerId") int customerId ) {
+    @GetMapping(value = "/customer/{customerId}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<List<Order>> getByCustomerId(@PathVariable("customerId") String customerId ) {
         return ResponseEntity.ok(orderService.getOrderByCustomerId(customerId));
     }
 
-    @GetMapping(value = "address/{customerId}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<List<Address>> getAddressByCustomerId(@RequestParam (value = "customerId") int customerId ) {
-        return ResponseEntity.ok(orderService.getAllAddressByCustomerId(customerId));
-    }
-
     @DeleteMapping(value = "delete/{orderId}",consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Void> delete(@RequestParam(value = "orderId") int orderId) {
+    public ResponseEntity<Void> updateOrder(@RequestParam(value = "orderId") int orderId) {
         orderService.deleteOrder(orderId);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }

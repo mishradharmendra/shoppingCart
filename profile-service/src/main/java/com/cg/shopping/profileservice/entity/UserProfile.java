@@ -22,7 +22,7 @@ import java.util.Map;
 @Builder
 public class UserProfile {
     @Id
-    private String id;
+    private String _id;
 
     private int profileId;
     private String fullName;
@@ -34,6 +34,7 @@ public class UserProfile {
     private String gender;
     private String role;
     private String password;
+    private Boolean isAdmin;
 
     private Address address;
 }

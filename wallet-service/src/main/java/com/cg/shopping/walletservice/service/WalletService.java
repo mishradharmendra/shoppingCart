@@ -31,24 +31,28 @@ public class WalletService {
     }
 
     @Synchronized
-    public void addMoney(WalletRequest request) {
+    public IllegalArgumentException addMoney(WalletRequest request) {
         Optional<Wallet> byWalletId = walletRepository.findByWalletId(request.getWalletId());
         if (byWalletId.isPresent()) {
             Wallet wallet1 = byWalletId.get();
             if (request.getTransactionType().equalsIgnoreCase("deposit")) {
                 wallet1.setCurrentBalance(wallet1.getCurrentBalance() + request.getAmount());
             } else {
+                if (wallet1.getCurrentBalance() < request.getAmount()) {
+                    return new IllegalArgumentException("Wallet balance is not enough");
+                }
                 wallet1.setCurrentBalance(wallet1.getCurrentBalance() - request.getAmount());
             }
             walletRepository.save(wallet1);
         }
+        return null;
     }
 
     public Wallet findByWalletId(int walletId) {
         return walletRepository.findByWalletId(walletId).orElse(Wallet.builder().build());
     }
 
-    public Wallet findByCustomerId(int customerId) {
+    public Wallet findByCustomerId(String customerId) {
         return walletRepository.findByCustomerId(customerId).orElse(Wallet.builder().build());
     }
 
@@ -69,6 +73,7 @@ public class WalletService {
             walletRepository.delete(byWalletId.get());
         }
     }
+
     @Synchronized
     public int getNextId() {
         Wallet wallet = walletRepository.findTopByOrderByWalletIdDesc();
