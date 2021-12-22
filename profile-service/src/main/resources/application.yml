@@ -20,3 +20,6 @@ springdoc:
   swagger-ui:
     path: /profile-service-swagger.html
   operationsSorter: method
+
+jwtSecret: secret
+jwtExpiration: 86400
