@@ -24,17 +24,17 @@ public class UserProfileService {
     }
 
     public UserProfile login(Map<String, String> userProfile) {
-        return userProfileRepository.findByEmailAndPassword(userProfile.get("userName"), userProfile.get("password"))
+        return userProfileRepository.findByEmailAndPassword(userProfile.get("email"), userProfile.get("password"))
                 .orElse(UserProfile.builder().build());
     }
     public List<UserProfile> getAllUserProfiles() {
         return userProfileRepository.findAll();
     }
-    public UserProfile getByProfileId(int profileId) {
-        return userProfileRepository.findByProfileId(profileId).orElse(UserProfile.builder().build());
+    public UserProfile getByProfileId(String profileId) {
+        return userProfileRepository.findById(profileId).orElse(UserProfile.builder().build());
     }
 
-    public UserProfile getByMobileNumber(long mobileNumber) {
+    public UserProfile getByMobileNumber(String mobileNumber) {
         return userProfileRepository.findByMobileNumber(mobileNumber).orElse(UserProfile.builder().build());
     }
 
@@ -42,10 +42,14 @@ public class UserProfileService {
         return userProfileRepository.findByFullName(fullName).orElse(UserProfile.builder().build());
     }
 
+    public UserProfile getByEmail(String email) {
+        return userProfileRepository.findByEmail(email).orElse(UserProfile.builder().build());
+    }
+
     public void updateUserProfile(UserProfile userProfile) {
         Optional<UserProfile> byProfileId = userProfileRepository.findByProfileId(userProfile.getProfileId());
         if (byProfileId.isPresent()) {
-            userProfile.setId(byProfileId.get().getId());
+            userProfile.set_id(byProfileId.get().get_id());
             userProfileRepository.save(userProfile);
         }
     }
@@ -62,5 +66,9 @@ public class UserProfileService {
         UserProfile profile = userProfileRepository.findTopByOrderByProfileIdDesc();
         int id = (profile != null) ? profile.getProfileId() : 0;
         return ++id;
+    }
+
+    public boolean existsByEmail(String email) {
+        return userProfileRepository.existsByEmail(email);
     }
 }

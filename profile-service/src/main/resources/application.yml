@@ -20,3 +20,15 @@ springdoc:
   swagger-ui:
     path: /profile-service-swagger.html
   operationsSorter: method
+
+jwtSecret: secret
+jwtExpiration: 86400
+
+logging:
+  level:
+    reactor:
+      netty: INFO
+    org:
+      springframework:
+        cloud:
+          gateway: TRACE

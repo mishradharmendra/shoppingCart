@@ -34,3 +34,11 @@ springdoc:
   swagger-ui:
     path: /product-service-swagger.html
   operationsSorter: method
+
+logging:
+  level:
+    reactor:
+      netty: INFO
+    org:
+      springframework:
+        web: TRACE

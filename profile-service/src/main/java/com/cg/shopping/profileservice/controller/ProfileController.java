@@ -1,13 +1,27 @@
 package com.cg.shopping.profileservice.controller;
 
+import com.cg.shopping.profileservice.entity.JwtRes;
+import com.cg.shopping.profileservice.entity.LoginReq;
+import com.cg.shopping.profileservice.entity.MessageRes;
+import com.cg.shopping.profileservice.entity.SignupReq;
 import com.cg.shopping.profileservice.entity.UserProfile;
+import com.cg.shopping.profileservice.security.MyUserDetails;
+import com.cg.shopping.profileservice.security.jwt.JwtProvider;
 import com.cg.shopping.profileservice.service.UserProfileService;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -15,14 +29,19 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.validation.Valid;
 import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/profile")
+@RequestMapping("/api/profile")
 @AllArgsConstructor
+@Slf4j
 public class ProfileController {
 
+    private final AuthenticationManager authenticationManager;
+    private final PasswordEncoder encoder;
+    private final JwtProvider jwtProvider;
     private final UserProfileService userProfileService;
 
     @PostMapping(value = "/createNewCustomer", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
@@ -42,10 +61,42 @@ public class ProfileController {
     }
 
     @PostMapping(value = "/login", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<UserProfile> login(@RequestBody Map<String, String> userProfile) {
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(userProfileService.login(userProfile));
+    public ResponseEntity<?> login(@Valid @RequestBody LoginReq loginReq) {
+
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(loginReq.getEmail(), loginReq.getPassword()));
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        String token = jwtProvider.generateJwtToken(authentication);
+        MyUserDetails userDetails = (MyUserDetails) authentication.getPrincipal();
+        return ResponseEntity.ok(
+                new JwtRes(userDetails.getId(),
+                        userDetails.getName(),
+                        userDetails.getUsername(),
+                        token,
+                        userDetails.getRole(),
+                        userDetails.getIsAdmin()));
+    }
+
+    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> register(@Valid @RequestBody SignupReq signupReq) {
+        if (userProfileService.existsByEmail(signupReq.getEmail())) {
+            return new ResponseEntity<>(new MessageRes("User already exists!"),
+                    HttpStatus.BAD_REQUEST);
+        }
+        // Creating user's account
+        UserProfile user = UserProfile
+                .builder()
+                .fullName(signupReq.getName())
+                .email(signupReq.getEmail())
+                .role("ROLE_CUSTOMER")
+                .isAdmin(false)
+                .address(signupReq.getAddress())
+                .mobileNumber(signupReq.getPhone())
+                .password(encoder.encode(signupReq.getPassword()))
+                .build();
+        userProfileService.addNewUserProfile(user);
+        return login(new LoginReq(signupReq.getEmail(), signupReq.getPassword()));
     }
 
     @PostMapping(value = "/createNewDeliveryProfile", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
@@ -62,27 +113,34 @@ public class ProfileController {
 
 
     @GetMapping(value = "/{profileId}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<UserProfile> getById(@RequestParam (value = "profileId") int profileId ) {
+    public ResponseEntity<UserProfile> getAllProfileById(@PathVariable("profileId") String profileId ) {
         return ResponseEntity.ok(userProfileService.getByProfileId(profileId));
     }
 
     @GetMapping(value = "/mobile/{mobilePhone}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<UserProfile> getAllByMobilePhone(@RequestParam (value = "mobilePhone") long mobilePhone ) {
+    public ResponseEntity<UserProfile> getAllByMobilePhone(@RequestParam (value = "mobilePhone") String mobilePhone ) {
         return ResponseEntity.ok(userProfileService.getByMobileNumber(mobilePhone));
     }
 
-    @GetMapping(value = "/username/{userName}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/name/{userName}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<UserProfile> getByName(@RequestParam (value = "userName") String userName ) {
         return ResponseEntity.ok(userProfileService.getByUserName(userName));
     }
 
+    @GetMapping(value = "/email/{email}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<UserProfile> getByEmail(@PathVariable (value = "email") String email ) {
+        return ResponseEntity.ok(userProfileService.getByEmail(email));
+    }
+
     @PutMapping(value = "/updateProfile", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Void> updateProfile(@RequestBody UserProfile userProfile) {
+    public ResponseEntity<Void> updateProduct(@RequestBody UserProfile userProfile) {
+        log.info("Received Profile update request for user " + userProfile.getProfileId());
+        userProfile.setPassword(encoder.encode(userProfile.getPassword()));
         userProfileService.updateUserProfile(userProfile);
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
-    @DeleteMapping("/delete/{profileId}")
+    @DeleteMapping("/{profileId}")
     public ResponseEntity<Void> deleteProfile(@RequestParam(value = "profileId") int profileId) {
         userProfileService.deleteUserProfile(profileId);
         return ResponseEntity.status(HttpStatus.OK).build();

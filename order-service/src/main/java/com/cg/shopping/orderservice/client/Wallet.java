@@ -17,6 +17,6 @@ public class Wallet {
 
     private int walletId;
 
-    private int customerId;
+    private String customerId;
     private double currentBalance;
 }

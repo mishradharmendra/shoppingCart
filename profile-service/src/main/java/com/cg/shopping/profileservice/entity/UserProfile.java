@@ -22,18 +22,19 @@ import java.util.Map;
 @Builder
 public class UserProfile {
     @Id
-    private String id;
+    private String _id;
 
     private int profileId;
     private String fullName;
     private String image;
     private String email;
-    private long mobileNumber;
+    private String mobileNumber;
     private String about;
     private LocalDate dateOfBirth;
     private String gender;
     private String role;
     private String password;
+    private Boolean isAdmin;
 
-    private Address address;
+    private String address;
 }

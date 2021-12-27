@@ -10,12 +10,15 @@ import java.util.Optional;
 public interface UserProfileRepository extends MongoRepository<UserProfile, String> {
 
     Optional<UserProfile> findByFullName(String fullName);
+    Optional<UserProfile> findByEmail(String email);
     Optional<UserProfile> findByProfileId(int profileId);
 
-    Optional<UserProfile> findByMobileNumber(long mobileNumber);
+    Optional<UserProfile> findByMobileNumber(String mobileNumber);
 
     Optional<UserProfile> findByEmailAndPassword(String email, String password);
-    
+
     UserProfile findTopByOrderByProfileIdDesc();
+
+    Boolean existsByEmail(String email);
 
 }

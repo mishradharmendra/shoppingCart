@@ -1,5 +1,7 @@
 package com.cg.shopping.cartservice.entity;
 
+import com.cg.shopping.cartservice.dto.ProductInOrder;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -9,20 +11,36 @@ import lombok.ToString;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import javax.validation.constraints.NotNull;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Data
 @Document(collection = "cart")
 @NoArgsConstructor
-@AllArgsConstructor
 @EqualsAndHashCode
 @ToString
-@Builder
 public class Cart {
     @Id
-    private String id;
+    @NotNull
+    private String cartId;
 
-    private int cartId;
-    private double totalPrice;
-    private List<Items> items;
+    @JsonIgnore
+    private String user;
+
+    private Set<ProductInOrder> products = new HashSet<>();
+
+    private String orderId;
+    @Override
+    public String toString() {
+        return "Cart{" +
+                "cartId=" + cartId +
+                ", products=" + products +
+                '}';
+    }
+
+    public Cart(String user) {
+        this.user  = user;
+    }
 }

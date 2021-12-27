@@ -1,15 +1,23 @@
 package com.cg.shopping.cartservice.service;
 
+import com.cg.shopping.cartservice.client.Order;
+import com.cg.shopping.cartservice.client.OrderServiceClient;
 import com.cg.shopping.cartservice.dao.CartRepository;
+import com.cg.shopping.cartservice.dto.ProductInOrder;
 import com.cg.shopping.cartservice.entity.Cart;
 import com.cg.shopping.cartservice.entity.Items;
 import lombok.AllArgsConstructor;
 import lombok.Synchronized;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Service
 @AllArgsConstructor
@@ -17,41 +25,40 @@ import java.util.Optional;
 public class CartService {
 
     private final CartRepository cartRepository;
+    private final OrderServiceClient orderServiceClient;
 
     public Cart getCartById(int cartId) {
-        return cartRepository.findByCartId(cartId).orElse(Cart.builder().build());
-    }
-
-    public Cart updateCart(Cart cart) {
-        Optional<Cart> byCartId = cartRepository.findByCartId(cart.getCartId());
-        if (byCartId.isPresent()) {
-            cart.setId(byCartId.get().getId());
-            cart.setTotalPrice(cartTotal(cart));
-            return cartRepository.save(cart);
-        }
-
-        return Cart.builder().build();
+        return cartRepository.findByCartId(cartId).orElse(new Cart());
     }
 
     public List<Cart> getAllCart() {
         return cartRepository.findAll();
     }
 
-    public double cartTotal(Cart cart) {
-        return cart.getItems().stream().mapToDouble(Items::getPrice).sum();
+    public Cart getCart(String email) {
+        return cartRepository.findByUser(email).orElse(new Cart(email));
     }
 
-    public Cart addCart(Cart cart) {
-        cart.setCartId(getNextId());
-        cart.setTotalPrice(cartTotal(cart));
-        return  cartRepository.save(cart);
-    }
-    
-    @Synchronized
-    public int getNextId() {
-        Cart cart = cartRepository.findTopByOrderByCartIdDesc();
-        int id = (cart != null) ? cart.getCartId() : 0;
-        return ++id;
+
+    @Transactional
+    public void mergeLocalCart(Set<ProductInOrder> productInOrders, String user) {
+        Cart finalCart = getCart(user);
+        Set<ProductInOrder> products = finalCart.getProducts();
+        log.info("Before ::" + products);
+        productInOrders.stream().forEach(productInOrder -> products.add(productInOrder));
+        log.info("After " + products);
+        finalCart.setProducts(products);
+        cartRepository.save(finalCart);
+
     }
 
+    public String checkout(Authentication auth) {
+        ResponseEntity<Order> orderResponseEntity = orderServiceClient.makeOrder(auth.getCredentials().toString());
+        if (orderResponseEntity.getStatusCode() == HttpStatus.CREATED) {
+            Cart finalCart = getCart(auth.getName());
+            cartRepository.delete(finalCart);
+            return  orderResponseEntity.getBody().get_id();
+        }
+        return "";
+    }
 }

@@ -20,3 +20,7 @@ springdoc:
   swagger-ui:
     path: /order-service-swagger.html
   operationsSorter: method
+
+
+jwtSecret: secret
+jwtExpiration: 86400

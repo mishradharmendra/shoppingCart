@@ -1,18 +1,22 @@
 package com.cg.shopping.orderservice.entity;
 
+import com.cg.shopping.orderservice.client.ProductInOrder;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.DBRef;
+import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+import java.math.BigDecimal;
+import java.time.Instant;
+import java.util.Set;
 
 @Document(collection = "order")
 @Data
@@ -24,18 +28,37 @@ import java.util.List;
 public class Order {
 
     @Id
-    private String id;
+    private String _id;
 
     private int orderId;
 
-    private LocalDate orderDate;
-    private int customerId;
-    private double amountPaid;
-    private String modeOfPayment;
-    private String orderStatus;
-    private int quantity;
-    private int cartId;
+    private String customerId;
+    private Set<ProductInOrder> productInOrders;
+    @NotEmpty
+    private String buyerEmail;
 
-    @DBRef(db="address")
-    private List<Address> addresses = new ArrayList<>();
+    @NotEmpty
+    private String buyerName;
+
+    @NotEmpty
+    private String buyerPhone;
+
+    @NotEmpty
+    private String buyerAddress;
+
+    // Total Amount
+    @NotNull
+    private BigDecimal orderAmount;
+
+    /**
+     * default 0: new order.
+     */
+    @NotNull
+    private Integer orderStatus;
+    @CreatedDate
+    private Instant orderDate;
+    @LastModifiedDate
+    private Instant updatedAt;
+
+
 }
